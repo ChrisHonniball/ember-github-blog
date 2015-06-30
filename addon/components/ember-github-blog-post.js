@@ -4,51 +4,46 @@ import layout from '../templates/components/ember-github-blog-post';
 export default Ember.Component.extend({
   layout: layout,
   
+  store: Ember.inject.service(),
+  
   classNames: ['ember-github-blog-post'],
   
-  
-  ///////////////
-  //! Computed //
-  ///////////////
-  
-  nicename: Ember.computed('model.post_name', {
-    get: function(){
-      var that = this;
-      
-      return that.get('model.post_name').replace(/-|_/g, ' ');
-    }
-  }),
-  
-  willInsertElement: function() {
+  willInsertElement: function(){
     var that = this,
+      config = that.container.lookupFactory('config:environment'),
       promise = new Ember.RSVP.Promise(function(resolve, reject){
+        that.set('loadingPost', true);
+        
         var ajaxSettings = {
           "type": "GET",
-          "url": "https://api.github.com/repos/ChrisHonniball/chrishonniball.github.io/contents/_posts/" + that.get('model.post_name') + ".md",
+          "url": "https://api.github.com/repos/" + config.emberGithubBlog.username + "/" + config.emberGithubBlog.repository + "/contents/" + config.emberGithubBlog.postsPath + "/" + that.get('post') + ".md",
           "dataType": "json",
-          "success": resolve,
-          "error": reject
+          "success": function(response){
+            resolve(response);
+          },
+          "error": function(error){
+            console.log(
+              "%c%s#promise ERROR :%O",
+              "color: red", // http://www.w3schools.com/html/html_colornames.asp
+              that.toString(),
+              error
+            );
+            reject(error);
+          }
         };
         
         Ember.$.ajax(ajaxSettings);
       }).then(function(response) {
-        console.log(response);
+        response.id = response.sha;
+        
+        that.setProperties({
+          'model': that.get('store').push('ember-github-blog-post', response),
+          'loadingPost': false
+        });
       }, function(error) {
-        console.log(
-          "%c%s#promise ERROR :%O",
-          "color: red", // http://www.w3schools.com/html/html_colornames.asp
-          that.toString(),
-          error
-        );
+        console.error(error);
       });
-    
-    /* */
-    console.log(
-      "%c%s#willInsertElement - Get GitHub post `%s` now...",
-      "color: purple", // http://www.w3schools.com/html/html_colornames.asp
-      that.toString(),
-      that.get('model.post_name')
-    );
-    //*/
+  
+    return promise;
   }
 });
