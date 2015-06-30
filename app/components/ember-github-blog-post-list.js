@@ -1,0 +1,1 @@
+export { default } from 'ember-github-blog/components/ember-github-blog-post-list';

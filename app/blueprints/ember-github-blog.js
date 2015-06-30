@@ -1,0 +1,1 @@
+export { default } from 'ember-github-blog/blueprints/ember-github-blog';
