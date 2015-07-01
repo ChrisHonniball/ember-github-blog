@@ -7,7 +7,8 @@ module.exports = {
     var that = this;
     
     return that.addBowerPackagesToProject([
-      { name: 'marked' }
+      { name: 'marked' },
+      { name: 'highlightjs' }
     ]);
   }
 };

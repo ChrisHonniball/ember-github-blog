@@ -3,7 +3,8 @@
     "document",
     "window",
     "-Promise",
-    "marked"
+    "marked",
+    "hljs"
   ],
   "browser": true,
   "boss": true,

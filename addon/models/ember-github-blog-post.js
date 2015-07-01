@@ -46,7 +46,7 @@ export default DS.Model.extend({
         return undefined;
       }
       
-      var mdContent = window.atob(that.get('content'));
+      var mdContent = window.atob(that.get('content').replace(/\s/g, ''));
       
       return mdContent;
     }
@@ -62,7 +62,7 @@ export default DS.Model.extend({
       
       var content = that.get('mdContent').replace(/^---([\s\S]*?)---\n\n/, ''),
         formattedContent = marked(content);
-      
+        
       return formattedContent;
     }
   }),
@@ -99,9 +99,9 @@ export default DS.Model.extend({
   }),
   
   
-  //////////////
-  //! Actions //
-  //////////////
+  ////////////////
+  //! Functions //
+  ////////////////
   
   loadContent: function() {
     var that = this,
@@ -113,18 +113,8 @@ export default DS.Model.extend({
           "type": "GET",
           "url": "https://api.github.com/repos/" + config.emberGithubBlog.username + "/" + config.emberGithubBlog.repository + "/contents/" + that.get('path'),
           "dataType": "json",
-          "success": function(response){
-            resolve(response);
-          },
-          "error": function(error){
-            console.log(
-              "%c%s#promise ERROR :%O",
-              "color: red", // http://www.w3schools.com/html/html_colornames.asp
-              that.toString(),
-              error
-            );
-            reject(error);
-          }
+          "success": resolve,
+          "error": reject
         };
         
         Ember.$.ajax(ajaxSettings);
@@ -134,7 +124,12 @@ export default DS.Model.extend({
           'loadingContent': false
         });
       }, function(error) {
-        console.error(error);
+        console.log(
+          "%c%s#loadContent ERROR: %O",
+          "color: red", // http://www.w3schools.com/html/html_colornames.asp
+          that.toString(),
+          error
+        );
       });
   
     return promise;

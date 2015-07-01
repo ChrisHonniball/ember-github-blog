@@ -8,42 +8,69 @@ export default Ember.Component.extend({
   
   classNames: ['ember-github-blog-post'],
   
-  willInsertElement: function(){
-    var that = this,
-      config = that.container.lookupFactory('config:environment'),
-      promise = new Ember.RSVP.Promise(function(resolve, reject){
-        that.set('loadingPost', true);
-        
-        var ajaxSettings = {
-          "type": "GET",
-          "url": "https://api.github.com/repos/" + config.emberGithubBlog.username + "/" + config.emberGithubBlog.repository + "/contents/" + config.emberGithubBlog.postsPath + "/" + that.get('post') + ".md",
-          "dataType": "json",
-          "success": function(response){
-            resolve(response);
-          },
-          "error": function(error){
-            console.log(
-              "%c%s#promise ERROR :%O",
-              "color: red", // http://www.w3schools.com/html/html_colornames.asp
-              that.toString(),
-              error
-            );
-            reject(error);
-          }
-        };
-        
-        Ember.$.ajax(ajaxSettings);
-      }).then(function(response) {
-        response.id = response.sha;
-        
-        that.setProperties({
-          'model': that.get('store').push('ember-github-blog-post', response),
-          'loadingPost': false
-        });
-      }, function(error) {
-        console.error(error);
-      });
+  loadingPost: true,
   
-    return promise;
+  didRender: function(){
+    var that = this,
+      config = that.container.lookupFactory('config:environment');
+    
+    if(!that.get('model.htmlContent')) {
+      return false;
+    }
+    
+    if(config.emberGithubBlog.highlightjsEnabled) {
+      that.$('pre').each(function(_i, block) {
+        hljs.highlightBlock(block);
+      });
+    }
+  },
+  
+  willInsertElement: function(){
+    this.send('loadPost');
+  },
+  
+  
+  //////////////
+  //! Actions //
+  //////////////
+  
+  actions: {
+    loadPost: function() {
+      var that = this,
+        config = that.container.lookupFactory('config:environment'),
+        promise = new Ember.RSVP.Promise(function(resolve, reject){
+          var ajaxSettings = {
+            "type": "GET",
+            "url": "https://api.github.com/repos/" + config.emberGithubBlog.username + "/" + config.emberGithubBlog.repository + "/contents/" + config.emberGithubBlog.postsPath + "/" + that.get('post') + ".md",
+            "dataType": "json",
+            "success": resolve,
+            "error": reject
+          };
+          
+          Ember.$.ajax(ajaxSettings);
+        }).then(function(post) {
+          var model = {
+            id: post.sha,
+            type: 'ember-github-blog-post',
+            attributes: post
+          };
+          
+          that.setProperties({
+            'model': that.get('store').push({
+              data: model
+            }),
+            'loadingPost': false
+          });
+        }, function(error) {
+          console.log(
+            "%c%s#loadPost ERROR: %O",
+            "color: red", // http://www.w3schools.com/html/html_colornames.asp
+            that.toString(),
+            error
+          );
+        });
+    
+      return promise;
+    }
   }
 });
