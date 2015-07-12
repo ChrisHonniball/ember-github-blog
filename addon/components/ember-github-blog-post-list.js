@@ -10,14 +10,43 @@ export default Ember.Component.extend({
   
   sortProperties: ['postDate:desc', 'id:asc'],
   
+  postLimit: null,
+  
   sortedPosts: Ember.computed.sort('model', 'sortProperties'),
+  
+  limitedPosts: Ember.computed('sortedPosts', 'postLimit', {
+    get: function(){
+      var that = this;
+      
+      if(that.get('sortedPosts.length') < 1) {
+        return undefined;
+      }
+      
+      /* */
+      console.log(
+        "%c%s#limitedPosts postLimit: %s, sortedPosts: %s, isDestroying: %s",
+        "color: purple", // http://www.w3schools.com/html/html_colornames.asp
+        that.toString(),
+        that.get('postLimit'),
+        that.get('sortedPosts'),
+        that.get('isDestroying')
+      );
+      //*/
+      
+      var limitedPosts = (that.get('postLimit')) ? that.get('sortedPosts').splice(0, that.get('postLimit')) : that.get('sortedPosts');
+      
+      return limitedPosts;
+    }
+  }),
   
   /////////////
   //! Events //
   /////////////
   
   willInsertElement: function() {
-    this.send('loadPosts');
+    var that = this;
+    
+    that.send('loadPosts');
   },
   
   

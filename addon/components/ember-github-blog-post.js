@@ -8,8 +8,6 @@ export default Ember.Component.extend({
   
   classNames: ['ember-github-blog-post'],
   
-  loadingPost: true,
-  
   didRender: function(){
     var that = this,
       config = that.container.lookupFactory('config:environment');
@@ -26,9 +24,10 @@ export default Ember.Component.extend({
   },
   
   willInsertElement: function(){
-    this.send('loadPost');
+    var that = this;
+    
+    that.send('loadPost');
   },
-  
   
   //////////////
   //! Actions //
@@ -39,6 +38,8 @@ export default Ember.Component.extend({
       var that = this,
         config = that.container.lookupFactory('config:environment'),
         promise = new Ember.RSVP.Promise(function(resolve, reject){
+          that.set('loadingPost', true);
+          
           var ajaxSettings = {
             "type": "GET",
             "url": "https://api.github.com/repos/" + config.emberGithubBlog.username + "/" + config.emberGithubBlog.repository + "/contents/" + config.emberGithubBlog.postsPath + "/" + that.get('post') + ".md",
