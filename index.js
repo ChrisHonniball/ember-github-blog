@@ -11,20 +11,14 @@ module.exports = {
     
     var settings = app.project.config().emberGithubBlog;
     
-    if(!settings) {
-      settings = _.merge(settings, {
-        username: null,
-        repository: null,
-        branch: null,
-        postsPath: null,
-        highlightjsEnabled: true,
-        highlightjsTheme: 'tomorrow'
-      });
-    }
-    
-    if(!settings.highlightjsTheme) {
-      settings.highlightjsTheme = 'tomorrow';
-    }
+    settings = _.merge({
+      username: null,
+      repository: null,
+      branch: null,
+      postsPath: null,
+      highlightjsEnabled: true,
+      highlightjsTheme: 'tomorrow'
+    }, settings);
     
     // Import the javascript.
     app.import(app.bowerDirectory + '/marked/marked.min.js');
